@@ -1,7 +1,7 @@
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
-import Navbar from "./layout/Navbar";
-import AppRoutes from './hierarchy/AppRoutes';
+import Navbar from "./assets/Navbar";
+import AppRoutes from './navigation/AppRoutes';
 import {BrowserRouter} from "react-router-dom";
 
 function App() {

@@ -1,21 +1,22 @@
-import React, {useState} from 'react';
-import {useNavigate} from "react-router-dom";
-//https://getbootstrap.com/docs/5.3/forms/form-control/
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useRedirect } from "../navigation/RedirectHandlers";
+
 export default function Register() {
-    //Redirect to Login
-    const navigate = useNavigate();
-    const handleRedirectToLogin = () => {
-        navigate('/Login');
-    };
+    const handleRedirectToLogin = useRedirect('/Login');
+    const handleRedirectToProfile = useRedirect('/Profile');
 
     // Initialize state for form fields
     const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        role: 'USER' // Static role
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        role: "USER" // Static role
     });
+
+    const [formError, setFormError] = useState(null); // To store form validation error messages
+    const [isSubmitting, setIsSubmitting] = useState(false); // To show a loading indicator while submitting
 
     // Handle form input change
     const handleChange = (e) => {
@@ -26,11 +27,44 @@ export default function Register() {
         }));
     };
 
+    // Validate form data before submission
+    const validateForm = () => {
+        const { firstName, lastName, email, password } = formData;
+        if (!firstName || !lastName || !email || !password) {
+            setFormError("All fields are required!");
+            return false;
+        }
+        setFormError(null); // Clear error if validation passes
+        return true;
+    };
+
     // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Form submission logic (e.g., send data to an API)
-        console.log('Form Submitted:', formData);
+
+        // Validate the form before proceeding
+        if (validateForm()) {
+            try {
+                setIsSubmitting(true); // Set submitting state to true
+                // Send form data to the backend API
+                const response = await axios.post('http://localhost:1111/register', formData, {
+                    headers: {
+                        'Content-Type': 'application/json', // Ensure that the content type is set to JSON
+                    }
+                });
+
+                console.log('Response from server:', response.data);
+
+                // Redirect to the profile page after successful form submission
+                handleRedirectToProfile();
+
+            } catch (error) {
+                console.error('Error during form submission:', error);
+                setFormError('An error occurred while submitting the form. Please try again.');
+            } finally {
+                setIsSubmitting(false); // Set submitting state back to false
+            }
+        }
     };
 
     return (
@@ -101,30 +135,29 @@ export default function Register() {
                     </div>
                 </div>
 
-                {/* Role (Static) */}
-                <div className="mb-3 row">
-                    <label htmlFor="inputRole" className="col-sm-2 col-form-label">Role</label>
-                    <div className="col-sm-10">
-                        <input
-                            type="text"
-                            className="form-control"
-                            id="inputRole"
-                            name="role"
-                            value={formData.role}
-                            readOnly
-                        />
+
+                {/* Error Message */}
+                {formError && (
+                    <div className="alert alert-danger" role="alert">
+                        {formError}
                     </div>
-                </div>
+                )}
 
                 {/* Submit Button */}
                 <div className="mb-3 row">
                     <div className="col-sm-10 offset-sm-2">
-                        <button type="submit" className="btn btn-primary">Register</button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Submitting...' : 'Register'}
+                        </button>
                     </div>
                 </div>
             </form>
 
-            {/* Redirect to Login Button */}
+            {/* Redirect to Login button */}
             <div className="mb-3 row">
                 <div className="col-sm-10 offset-sm-2">
                     <button
